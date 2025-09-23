@@ -4,6 +4,7 @@ import { AuthContextProvider, useAuth } from '../context/authContext';
 //import React from 'react';
 //import { AuthContextProvider } from '../context/authContext';
 import "../global.css";
+import { MenuProvider } from 'react-native-popup-menu';
 
 const MainLayout = () => {
   const {isAuthenticated} = useAuth(); //--> error: cannot call class as a function
@@ -28,10 +29,12 @@ const MainLayout = () => {
 }
 export default function RootLayout() {
   return (
-    <AuthContextProvider>
+    <MenuProvider>
+     <AuthContextProvider>
         {/* App content wrapped inside AuthContextProvider */}
         <MainLayout />
-    </AuthContextProvider>
+      </AuthContextProvider>
+    </MenuProvider>
   );
 }
 
