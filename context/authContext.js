@@ -68,7 +68,8 @@ export const AuthContextProvider = ({children})=>{
             await setDoc(doc(db, "users", response?.user?.uid),{
                 username,
                 profileUrl,
-                userId: response?.user?.uid
+                userId: response?.user?.uid,
+                userType: 'user'
             });
             return {success: true, data: response?.user};
         } catch(e) {

@@ -32,7 +32,6 @@ export default function signUp() {
         if(!response.success){
             Alert.alert('Sign Up', response.msg);
         }
-
     }
     return (
         //<View className="flex-1">
@@ -107,7 +106,7 @@ export default function signUp() {
                     }
                 </View>
 
-                {/* sign up text */}
+                {/* sign in text */}
                 < View className="flex-row justify-center">
                     <Text style={{fontSize: hp(1.8)}} className="font-semibold text-neutral-500"> Already have an account?</Text>
                     <Pressable onPress={()=> router.push('signIn')}>
