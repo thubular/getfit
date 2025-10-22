@@ -3,7 +3,7 @@ import React from 'react'
 import ChatItem from './ChatItem'
 import { useRouter } from 'expo-router'
 
-export default function ChatList({users}) {
+export default function ChatList({users, currentUser}) {
     // needed to navigate chat history
     const router = useRouter();
     return (
@@ -15,9 +15,10 @@ export default function ChatList({users}) {
                 showsVerticalScrollIndicator={false}
                 renderItem={({item, index})=> <ChatItem 
                     router={router}
+                    currentUser={currentUser}
                     item={item} 
                     index={index} />}
-                />
+                /> 
         </View>
     )
 }
