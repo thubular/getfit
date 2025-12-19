@@ -29,7 +29,7 @@ export default function ChatItem({item, router, noBorder, currentUser}) {
     console.log('last message: ', lastMessage);
 
     const openChatRoom = ()=>{
-        router.push({pathname: '/chatRoom', params: item});
+        router.push({pathname: '../../components/ChatRoom', params: item});
     }
 
     const renderTime = ()=>{

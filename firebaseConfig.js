@@ -6,7 +6,7 @@ import { getReactNativePersistence, initializeAuth } from 'firebase/auth';
 
 // Your web app's Firebase configuration
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import { getFirestore, collection } from 'firebase/firestore'
+import { getFirestore, collection, enableNetwork, disableNetwork } from 'firebase/firestore'
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_API_KEY,
   authDomain: process.env.EXPO_PUBLIC_AUTH_DOMAIN,
@@ -24,6 +24,10 @@ export const auth = initializeAuth(app, {
 });
 
 export const db = getFirestore(app);
+
+enableNetwork(db).catch(() => {
+  console.log('Offline mode enabled');
+});
 
 export const usersRef = collection(db, 'users');
 export const roomRef = collection(db, 'rooms');

@@ -21,7 +21,7 @@ export default function Schedule() {
     
     // need to check if user is admin or not
     useEffect(()=>{
-      console.log('Schedule: user changed:', user?.uid);
+      console.log('Schedule: user type:', user?.userType);
       if (user?.uid) {
         getUserType();
       }
