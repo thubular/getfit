@@ -25,7 +25,21 @@ export default function HomeHeader() {
     }
 
     const handleLogout = async ()=>{
-        await logout();
+        //await logout();
+        console.log('Starting logout...');
+        try {
+            const result = await logout();
+            console.log('Logout result:', result);
+        if (result.success) {
+            Alert.alert('Logged out', 'You have been logged out successfully.');
+            // Optionally, navigate manually if auto-navigation fails
+        } else {
+            Alert.alert('Logout Failed', result.msg);
+        }
+        } catch (error) {
+            console.error('Logout error:', error);
+            Alert.alert('Error', 'An error occurred during logout.');
+        }
     }
     return (
         <View style={{paddingTop: ios? top:top+10 }} className="flex-row justify-between px-5 bg-indigo-400 pb-6 shadow">

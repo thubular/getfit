@@ -11,6 +11,10 @@ import { usersRef } from '../../firebaseConfig.js';
 import Loading from '../../components/Loading.js';
 
 export default function Home() {
+    const {user} = useAuth();
+
+    console.log(user?.uid, 'user ID');
+    
     return (
         <View>
             <Text>Home</Text>
