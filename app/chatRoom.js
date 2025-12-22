@@ -1,16 +1,18 @@
 import { View, Text, TouchableOpacity, TextInput, Keyboard } from 'react-native'
 import React, { useState, useEffect, useRef } from 'react'
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import ChatRoomHeader from './ChatRoomHeader.js';
-import MessageList from './MessageList.js';
+//import ChatRoomHeader from '../components/ChatRoomHeader.js';
+import MessageList from '../components/MessageList.js';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { Feather } from '@expo/vector-icons';
-import CustomKeyboardView from './CustomKeyboardView.js';
+import CustomKeyboardView from '../components/CustomKeyboardView.js';
 import { useAuth } from '../context/authContext.js';
 import { getRoomId } from '../utils/common.js';
 import { Timestamp, doc, setDoc, collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig.js';
+import { Entypo, Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 
 export default function ChatRoom() {
 
@@ -100,16 +102,44 @@ export default function ChatRoom() {
     console.log('messages: ', messages);
 
     return (
-        <CustomKeyboardView inChat={true}>
+        <>
+        <Stack.Screen 
+            options={{
+                title: '',
+                headerShadowVisible: false,
+                headerLeft: ()=>(
+                    <View className="flex-row items-center gap-4">
+                        <TouchableOpacity onPress={()=> router.back()}>
+                            <Entypo name="chevron-left" size={hp(4)} color="#737373" />
+                        </TouchableOpacity>
+                        <View className="flex-row items-center gap-3">
+                            <Image
+                                source={user?.profileUrl}
+                                style={{height: hp(4.5), aspectRatio: 1, borderRadius: 100}}
+                            />
+                            <Text style={{fontSize: hp(2.5)}} className="text-neutral-700 font-medium">
+                                {user?.username}
+                            </Text>
+                        </View>
+                    </View>
+                ),
+                headerRight: ()=>(
+                    <View className="flex-row items-center gap-8">
+                        <Ionicons name="call" size={hp(2.8)} color={'#737373'} />
+                        <Ionicons name="videocam" size={hp(2.8)} color={'#737373'} />
+                    </View>
+                )
+            }}
+        />
         <View className="flex-1 bg-white">
             <StatusBar style="dark" />
-            <ChatRoomHeader user={item} router={router} />
             <View className="h-3 border-b border-neutral-200" />
-            <View className="flex-1 justify-between bg-neutral-100 overflow-visible">
-                <View className="flex-1">
-                    <MessageList scrollViewRef={scrollViewRef} messages={messages} currentUser={user} />
-                </View>
-                <View style={{marginBottom: hp(2.7)}} className="pt-2">
+            <CustomKeyboardView inChat={true}>
+                <View className="flex-1 justify-between bg-neutral-100 overflow-visible">
+                    <View className="flex-1">
+                        <MessageList scrollViewRef={scrollViewRef} messages={messages} currentUser={user} />
+                    </View>
+                    <View style={{marginBottom: hp(2.7)}} className="pt-2">
                         <View className="flex-row mx-3 justify-between bg-white border p-2 border-neutral-300 rounded-full pl-5">
                             <TextInput
                                 ref={inputRef}
@@ -122,10 +152,11 @@ export default function ChatRoom() {
                                 <Feather name="send" size={hp(2.7)} color="#737373" />
                             </TouchableOpacity>
                         </View>
+                    </View>
                 </View>
-            </View>
+            </CustomKeyboardView>
         </View>
-        </CustomKeyboardView>
+        </>
     )
 
 }  
