@@ -1,8 +1,8 @@
 import { StyleSheet, View, Text, TextInput, Button, Platform, Alert } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import { useAuth } from '../../context/authContext'
+import { useAuth } from '../../../context/authContext.js'
 import { query, getDocs, where, doc, getDoc } from 'firebase/firestore';
-import { usersRef } from '../../firebaseConfig.js';
+import { usersRef } from '../../../firebaseConfig.js';
 import CalendarPicker from 'react-native-calendar-picker'
 import * as Calendar from "expo-calendar";
 

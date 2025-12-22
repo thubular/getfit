@@ -2,15 +2,14 @@ import { View, Text, TouchableOpacity, TextInput, Keyboard } from 'react-native'
 import React, { useState, useEffect, useRef } from 'react'
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-//import ChatRoomHeader from '../components/ChatRoomHeader.js';
-import MessageList from '../components/MessageList.js';
+import MessageList from '../../components/MessageList.js';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { Feather } from '@expo/vector-icons';
-import CustomKeyboardView from '../components/CustomKeyboardView.js';
-import { useAuth } from '../context/authContext.js';
-import { getRoomId } from '../utils/common.js';
+import CustomKeyboardView from '../../components/CustomKeyboardView.js';
+import { useAuth } from '../../context/authContext.js';
+import { getRoomId } from '../../utils/common.js';
 import { Timestamp, doc, setDoc, collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebaseConfig.js';
+import { db } from '../../firebaseConfig.js';
 import { Entypo, Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 
@@ -114,11 +113,11 @@ export default function ChatRoom() {
                         </TouchableOpacity>
                         <View className="flex-row items-center gap-3">
                             <Image
-                                source={user?.profileUrl}
+                                source={item?.profileUrl}
                                 style={{height: hp(4.5), aspectRatio: 1, borderRadius: 100}}
                             />
                             <Text style={{fontSize: hp(2.5)}} className="text-neutral-700 font-medium">
-                                {user?.username}
+                                {item?.username}
                             </Text>
                         </View>
                     </View>

@@ -42,9 +42,9 @@ export default function HomeHeader() {
         }
     }
     return (
-        <View style={{paddingTop: ios? top:top+10 }} className="flex-row justify-between px-5 bg-indigo-400 pb-6 shadow">
+        <View style={{paddingTop: ios? top:top+10, backgroundColor: 'darkcyan'}} className="flex-row justify-between px-5 pb-6 shadow">
             <View>
-                <Text style={{fontSize: hp(3)}} className="font-medium text-white">Chats</Text>
+                <Text style={{fontSize: hp(3)}} className="font-medium text-white">Welcome back, {user?.username}!</Text>
             </View>
             <View>
                 <Menu>
