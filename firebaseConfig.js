@@ -31,3 +31,4 @@ enableNetwork(db).catch(() => {
 
 export const usersRef = collection(db, 'users');
 export const roomRef = collection(db, 'rooms');
+export const eventsRef = collection(db, 'events');
