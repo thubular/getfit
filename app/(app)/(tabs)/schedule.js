@@ -1,31 +1,92 @@
-import { StyleSheet, View, Text, TextInput, Button, Platform, Alert } from 'react-native'
+import { StyleSheet, View, Text, TextInput, Button, Platform, Alert, Modal } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../../../context/authContext.js'
 import { query, getDocs, where, doc, getDoc } from 'firebase/firestore';
-import { usersRef } from '../../../firebaseConfig.js';
+import { db, usersRef, eventsRef } from '../../../firebaseConfig.js';
 import CalendarPicker from 'react-native-calendar-picker'
 import * as Calendar from "expo-calendar";
+import { format } from 'date-fns';
 
 //const schedule = () => {
 export default function Schedule() {
     const {user} = useAuth();
+    const [events, setEvents] = useState([]);
     const [isAdmin, setIsAdmin] = useState(false);
-    const [selectedStartDate, setSelectedStartDate] = useState(null);
-    const [eventName, setEventName] = useState("");
-    const [zoomLink, setLink] = useState("");
-    const startDate = selectedStartDate 
-        ? (selectedStartDate instanceof Date //('YYYY-MM-DD').toString() 
-          ? selectedStartDate.toISOString().slice(0, 10)
-          : String(selectedStartDate))
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [name, setName] = useState("");
+    const [location, setLocation] = useState("");
+    const [startTime, setStartTime] = useState("");
+    const [endTime, setEndTime] = useState("");
+    const [eventDate, setEventDate] = useState("");
+    const [description, setDescription] = useState("");
+    const day = selectedDate 
+        ? (selectedDate instanceof Date //('YYYY-MM-DD').toString() 
+          ? selectedDate.toISOString().slice(0, 10)
+          : String(selectedDate))
         : '';
+    const [modalVisible, setModalVisible] = useState(false);
+
+    // Update onDateChange to handle modal visiblity upon selection
+    const handleDateChange = (date) => {
+      setSelectedDate(date);
+      setModalVisible(true);
+    }
     
+    // get events for selected date (for display in modal)
+    const getEventsForDate = (date) => {
+      if (!date) return [];
+      const dateString = format(date, 'yyyy-MM-dd');
+      return events.filter(event => event.date === dateString);
+    };
+
+    // fetch all events to highlight events on calendar
+    const getEvents = async () => {
+      try {
+        const q = query(eventsRef);
+        const querySnapshot = await getDocs(q);
+        console.log('Query returned:', querySnapshot.size, 'documents'); // Debug log
+        const data = [];
+        querySnapshot.forEach((doc) => {
+          data.push({id: doc.id, ...doc.data()});
+        })
+        setEvents(data);
+        console.log('Fetched events:', data);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        Alert.alert('Error fetching events:', error.message);
+      }
+    }
+
     // need to check if user is admin or not
     useEffect(()=>{
       console.log('Schedule: user type:', user?.userType);
       if (user?.uid) {
         getUserType();
       }
+      getEvents();
     },[user?.uid])
+
+    const getCustomDatesStyles = date => {
+      const calendarDateString = format(date, 'yyyy-MM-dd');
+      const eventExists = events.some(event => {
+        //console.log('event.date:', event.date);
+        return event.date === calendarDateString;
+      });
+      if (eventExists) {
+        return {
+          style: {
+            backgroundColor: 'darkorange',
+            borderRadius: 15,
+          },
+          textStyle: {
+            color: 'white',
+            fontWeight: 'bold',
+          },
+        };
+      }
+      return {};
+    }
+
     const getUserType = async ()=>{
       // fetch user
       try {
@@ -90,10 +151,14 @@ export default function Schedule() {
             const calendarId = await createCalendar();
       
             const res = await Calendar.createEventAsync(calendarId, {
-                endDate: getAppointementDate(startDate),
-                startDate: getAppointementDate(startDate),
-                title: eventName,
-                link: zoomLink
+                endDate: getAppointmentDate(startDate),
+                startDate: getAppointmentDate(startDate),
+                name: name,
+                location: location,
+                startTime: startTime,
+                endTime: endTime,
+                description: description,
+                eventDate: eventDate,
         });
       Alert.alert('Event Created!');
     } catch (e) {
@@ -114,23 +179,55 @@ export default function Schedule() {
     }, []);
     return (
         <View>
-            <TextInput
-                onChangeText={setEventName}
-                value={eventName}
+            {/*<TextInput
+                onChangeText={setName}
+                value={name}
                 placeholder="Name of your event"
                 style={styles.input}
                 editable={isAdmin}
             />
             <TextInput
-                onChangeText={setLink}
-                value={zoomLink}
-                placeholder="Zoom Link"
+                onChangeText={setLocation}
+                value={location}
+                placeholder="Location of your event"
                 style={styles.input}
                 editable={isAdmin}
+            />*/}
+            <CalendarPicker 
+              onDateChange={handleDateChange}
+              customDatesStyles={getCustomDatesStyles}
+              selectedDayColor='darkturquoise'
+              //onMonthChange={handleMonthChange}
             />
-            <CalendarPicker onDateChange={setSelectedStartDate} />
-            <Text style={styles.dateText}>Date: {startDate}</Text>
+            <Text style={styles.dateText}>Date selected: {day}</Text>
             <Button title={"Add to calendar"} onPress={addNewEvent} disabled={!isAdmin} />
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={modalVisible}
+              onRequestClose={() => setModalVisible(false)}
+            >
+              {/* Modal content only showing when modal visiblity is true */}
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>
+                    Events for {selectedDate ? format(selectedDate, 'yyyy-MM-dd') : 'Selected Date'}
+                  </Text>
+                  {selectedDate && getEventsForDate(selectedDate).length > 0 ? (
+                    getEventsForDate(selectedDate).map((event, index) => (
+                    <Text key={index} style={styles.eventText}>
+                      {event.name} ({event.startTime} - {event.endTime}){'\n'}
+                      {event.location || 'No location'}{'\n'}
+                      {event.description || 'No description'}
+                    </Text>
+                    ))
+                  ) : (
+                    <Text>No events for this date.</Text>
+                  )}
+                  <Button title="Close" onPress={() => setModalVisible(false)} />
+                </View>
+              </View>
+            </Modal>
         </View>
     )
 }
@@ -149,5 +246,32 @@ const styles = StyleSheet.create({
   },
   dateText: {
     margin: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0.5)'
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  eventText: {
+    fontSize: 16,
+    marginVertical: 5,
+  },
+  noEventsText: {
+    fontSize: 16,
+    color: 'gray',
+    marginVertical: 10,
   },
 });
