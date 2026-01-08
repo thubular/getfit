@@ -37,7 +37,10 @@ export default function signUp() {
         //<View className="flex-1">
         <CustomKeyboardView>
             <StatusBar style="dark" />
-            <View style={{paddingTop: hp(8), paddingHorizontal: wp(5)}} className="flex-1 gap-12">
+            <View style={{
+                paddingTop: hp(8), 
+                paddingHorizontal: wp(5)
+            }} className="flex-1 gap-12">
                 {/* signIn image */}
                 <View className="items-center">
                     <Image style={{height: hp(25)}} resizeMode='contain' source={require('../assets/images/getfit30-logo.png')} />
