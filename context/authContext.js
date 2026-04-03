@@ -72,7 +72,10 @@ export const AuthContextProvider = ({children})=>{
                 username,
                 profileUrl,
                 userId: response?.user?.uid,
-                userType: 'user'
+                userType: 'user',
+                subscription: {
+                    status: 'inactive'
+                }
             });
             return {success: true, data: response?.user};
         } catch(e) {
