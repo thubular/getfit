@@ -8,44 +8,45 @@ import { blurhash } from '../utils/common.js';
 import { useAuth } from '../context/authContext.js';
 import { Feather, AntDesign } from '@expo/vector-icons';
 import {
-  Menu,
-  MenuOptions,
-  MenuOption,
-  MenuTrigger,
+    Menu,
+    MenuOptions,
+    MenuOption,
+    MenuTrigger,
 } from 'react-native-popup-menu';
 import { MenuItem } from './CustomMenuItems.js';
 
 const ios = Platform.OS == 'ios';
 export default function HomeHeader() {
-    const {user, logout} = useAuth();
+    const { user, logout } = useAuth();
 
-    const {top} = useSafeAreaInsets();
-    const handleProfile = ()=>{
+    const { top } = useSafeAreaInsets();
+    const handleProfile = () => {
 
     }
 
-    const handleLogout = async ()=>{
+    const handleLogout = async () => {
         //await logout();
         console.log('Starting logout...');
         try {
             const result = await logout();
             console.log('Logout result:', result);
-        if (result.success) {
-            Alert.alert('Logged out', 'You have been logged out successfully.');
-            // Optionally, navigate manually if auto-navigation fails
-        } else {
-            Alert.alert('Logout Failed', result.msg);
-        }
+            if (result.success) {
+                Alert.alert('Logged out', 'You have been logged out successfully.');
+                // Optionally, navigate manually if auto-navigation fails
+            } else {
+                Alert.alert('Logout Failed', result.msg);
+            }
         } catch (error) {
             console.error('Logout error:', error);
             Alert.alert('Error', 'An error occurred during logout.');
         }
     }
     return (
-        <View style={{paddingTop: ios? top:top+10, backgroundColor: '#4592a1'}} className="flex-row justify-between px-5 pb-6 shadow">
+        <View style={{ paddingTop: ios ? top : top + 10, backgroundColor: '#4592a1' }} className="flex-row justify-between px-5 pb-6 shadow">
             <View>
-                <Text style={{fontSize: hp(3)}} className="font-medium text-white">Welcome back, {user?.username}!</Text>
+                <Text style={{ fontSize: hp(3) }} className="font-medium text-white">Welcome back, {user?.username}!</Text>
             </View>
+            {/*
             <View>
                 <Menu>
                     <MenuTrigger customStyles={{
@@ -90,12 +91,13 @@ export default function HomeHeader() {
                     </MenuOptions>
                 </Menu>
             </View>
+            */}
         </View>
     );
 }
 
-const Divider = ()=>{
+const Divider = () => {
     return (
-        <View className="p-[1px] w-full bg-neutral-200"/>
+        <View className="p-[1px] w-full bg-neutral-200" />
     )
 }

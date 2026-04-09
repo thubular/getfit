@@ -115,7 +115,8 @@ app.post('/webhook',
                         subscription: {
                             status: subscription.status,
                             stripeSubscriptionId: subscription.id,
-                            currentPeriodEnd: subscription.items.data[0].current_period_end ? admin.firestore.Timestamp.fromMillis(subscription.items.data[0].current_period_end * 1000) : null
+                            currentPeriodEnd: subscription.items.data[0].current_period_end ? admin.firestore.Timestamp.fromMillis(subscription.items.data[0].current_period_end * 1000) : null,
+                            cancelAtPeriodEnd: false
                         }
                     }, { merge: true });
 
@@ -134,7 +135,8 @@ app.post('/webhook',
                         subscription: {
                             status: subscription.status,
                             stripeSubscriptionId: subscription.id,
-                            currentPeriodEnd: subscription.items.data[0].current_period_end ? admin.firestore.Timestamp.fromMillis(subscription.items.data[0].current_period_end * 1000) : null
+                            currentPeriodEnd: subscription.items.data[0].current_period_end ? admin.firestore.Timestamp.fromMillis(subscription.items.data[0].current_period_end * 1000) : null,
+                            cancelAtPeriodEnd: subscription.cancel_at_period_end
                         }
                     }, { merge: true });
 
@@ -273,6 +275,65 @@ app.post('/update-address', async (req, res) => {
         res.sendStatus(500).json({ error: err.message });
     }
 
+});
+
+app.post('/cancel-subscription', async (req, res) => {
+    try {
+        const { subscriptionId, userID } = req.body;
+
+        if (!subscriptionId) {
+            return res.status(400).json({ error: 'Subscription ID is required.' });
+        }
+
+        // Setting cancel_at_period_end means they keep access until the billing cycle ends.
+        // If you prefer to cancel immediately and cut off access, use:
+        // await stripe.subscriptions.cancel(subscriptionId);
+        const subscription = await stripe.subscriptions.update(
+            subscriptionId,
+            { cancel_at_period_end: true }
+        );
+
+        // Update your DB immediately here (or let your webhooks handle it automatically!)
+        const db = admin.firestore();
+        await db.collection('users').doc(userID).set({
+            subscription: {
+                cancelAtPeriodEnd: true
+            }
+        }, { merge: true });
+
+        res.json({ success: true, status: subscription.status });
+    } catch (err) {
+        console.error(err);
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.post('/reactivate-subscription', async (req, res) => {
+    try {
+        const { subscriptionId, userID } = req.body;
+
+        if (!subscriptionId) {
+            return res.status(400).json({ error: 'Subscription ID is required.' });
+        }
+
+        // Setting cancel_at_period_end to false reactivates the subscription!
+        const subscription = await stripe.subscriptions.update(
+            subscriptionId,
+            { cancel_at_period_end: false }
+        );
+
+        const db = admin.firestore();
+        await db.collection('users').doc(userID).set({
+            subscription: {
+                cancelAtPeriodEnd: false
+            }
+        }, { merge: true });
+
+        res.json({ success: true, status: subscription.status });
+    } catch (err) {
+        console.error(err);
+        res.status(400).json({ error: err.message });
+    }
 });
 
 // Start the server

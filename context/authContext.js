@@ -93,7 +93,8 @@ export const AuthContextProvider = ({children})=>{
         isAuthenticated, 
         login, 
         register, 
-        logout 
+        logout,
+        updateUserData
     }), [user, userData, isAuthenticated]);
 
     return (
