@@ -5,8 +5,13 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 
 export default function Profile() {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const router = useRouter();
+
+    const handleLogout = async () => {
+        await logout();
+        router.push('/login');
+    }
 
     const handleSubscribe = async () => {
         try {
@@ -21,6 +26,7 @@ export default function Profile() {
         <View>
             <Text>Profile</Text>
             <Button title="Subscribe Now" onPress={handleSubscribe} />
+            <Button title="Logout" onPress={handleLogout} />
         </View>
     );
 }
