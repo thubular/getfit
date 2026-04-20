@@ -8,7 +8,6 @@ const stripePromise = loadStripe('pk_test_51TEJ5gLma6zHZwMt9TMVJh40WklIADMoBpJDt
 
 export default function CheckoutForm() {
     const { user } = useAuth();
-    console.log(user?.uid);
     return (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
             <Elements stripe={stripePromise}
@@ -20,7 +19,7 @@ export default function CheckoutForm() {
             >
                 <Pay
                     priceId='price_1TEJRfLma6zHZwMt9bOGzskv'
-                    userID={user?.uid}
+                    userID={user?.id}
                 />
             </Elements>
         </ScrollView>

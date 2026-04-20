@@ -4,47 +4,47 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { blurhash } from '../utils/common.js';
+import { defaultPicture } from '../utils/common.js';
 import { useAuth } from '../context/authContext.js';
 import { Feather, AntDesign } from '@expo/vector-icons';
 import {
-  Menu,
-  MenuOptions,
-  MenuOption,
-  MenuTrigger,
+    Menu,
+    MenuOptions,
+    MenuOption,
+    MenuTrigger,
 } from 'react-native-popup-menu';
 import { MenuItem } from './CustomMenuItems.js';
 
 const ios = Platform.OS == 'ios';
 export default function HomeHeader() {
-    const {user, logout} = useAuth();
+    const { user, logout } = useAuth();
 
-    const {top} = useSafeAreaInsets();
-    const handleProfile = ()=>{
+    const { top } = useSafeAreaInsets();
+    const handleProfile = () => {
 
     }
 
-    const handleLogout = async ()=>{
+    const handleLogout = async () => {
         //await logout();
         console.log('Starting logout...');
         try {
             const result = await logout();
             console.log('Logout result:', result);
-        if (result.success) {
-            Alert.alert('Logged out', 'You have been logged out successfully.');
-            // Optionally, navigate manually if auto-navigation fails
-        } else {
-            Alert.alert('Logout Failed', result.msg);
-        }
+            if (result.success) {
+                Alert.alert('Logged out', 'You have been logged out successfully.');
+                // Optionally, navigate manually if auto-navigation fails
+            } else {
+                Alert.alert('Logout Failed', result.msg);
+            }
         } catch (error) {
             console.error('Logout error:', error);
             Alert.alert('Error', 'An error occurred during logout.');
         }
     }
     return (
-        <View style={{paddingTop: ios? top:top+10, backgroundColor: '#4592a1'}} className="flex-row justify-between px-5 pb-6 shadow">
+        <View style={{ paddingTop: ios ? top : top + 10, backgroundColor: '#4592a1' }} className="flex-row justify-between px-5 pb-6 shadow">
             <View>
-                <Text style={{fontSize: hp(3)}} className="font-medium text-white">Welcome back, {user?.username}!</Text>
+                <Text style={{ fontSize: hp(3) }} className="font-medium text-white">Welcome back, {user?.username}!</Text>
             </View>
             <View>
                 <Menu>
@@ -54,10 +54,9 @@ export default function HomeHeader() {
                         }
                     }}>
                         <Image
-                            style={{height: hp(4.3), aspectRatio: 1, borderRadius: 100}}
-                            source={user?.profileUrl}
-                            placeholder={blurhash}// will show blurhash image for 500ms until showing the real image
-                            transition={500}
+                            style={{ height: hp(4.3), aspectRatio: 1, borderRadius: 100 }}
+                            source={!user?.profileUrl ? defaultPicture : user?.profileUrl}
+                            placeholder={defaultPicture}
                         />
                     </MenuTrigger>
                     <MenuOptions
@@ -69,19 +68,19 @@ export default function HomeHeader() {
                                 marginLeft: -30,
                                 backgroundColor: 'white',
                                 shadowOpacity: 0.2,
-                                shadowOffset: {width: 0, height:0},
+                                shadowOffset: { width: 0, height: 0 },
                                 width: 160
                             }
                         }}
-                    > 
-                        <MenuItem 
+                    >
+                        <MenuItem
                             text="Profile"
                             action={handleProfile}
                             value={null}
                             icon={<Feather name="user" size={hp(2.5)} color="#737373" />}
                         />
                         <Divider />
-                        <MenuItem 
+                        <MenuItem
                             text="Sign Out"
                             action={handleLogout}
                             value={null}
@@ -94,8 +93,8 @@ export default function HomeHeader() {
     );
 }
 
-const Divider = ()=>{
+const Divider = () => {
     return (
-        <View className="p-[1px] w-full bg-neutral-200"/>
+        <View className="p-[1px] w-full bg-neutral-200" />
     )
 }

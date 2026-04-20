@@ -1,45 +1,23 @@
+// Stateless server that handles Stripe webhooks, user creation, and standard HTTP requests
 const express = require('express');
 const cors = require('cors');
-const { initializeApp } = require('firebase-admin/app');
 
 require('dotenv').config({ path: '../server/.env.local' });
+
+const { createClient } = require('@supabase/supabase-js');
+const supabaseAdmin = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+)
+
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const YOUR_DOMAIN = 'http://localhost:8081';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-const admin = require("firebase-admin");
-
-const serviceAccount = require(process.env.SERVICE_ACCOUNT_KEY);
-
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
-
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-
-const handleInvoicePaymentSucceeded = async (invoice, userID) => {
-    console.log('we are in handleInvoicePaymentSucceeded');
-    const db = admin.firestore();
-
-    if (!userID) {
-        console.warn('⚠️ No userID found for invoice. Skipping DB update.');
-        return;
-    }
-}
-
-const handlePaymentIntentSucceeded = async (paymentIntent, userID) => {
-    console.log('we are in handlePaymentIntentSucceeded');
-    const db = admin.firestore();
-
-    if (!userID) {
-        console.warn('⚠️ No userID found in paymentIntent metadata. Skipping DB update.');
-        return;
-    }
-}
 
 // Handle Stripe webhook events
 // POST /webhook
@@ -66,58 +44,26 @@ app.post('/webhook',
         // Extract the object from the event
         const dataObject = event.data.object;
 
-        const db = admin.firestore();
-
         // Handle the event
         switch (event.type) {
-            case 'payment_intent.succeeded': {
-                console.log('we are in payment_intent.succeeded');
-                const paymentIntent = event.data.object;
-                // If the PaymentIntent belongs to an invoice, let `invoice.payment_succeeded` handle it
-                if (paymentIntent.invoice) {
-                    console.log(`PaymentIntent is associated with an invoice. Skipping to prevent double-booking.`);
-                    break;
-                }
-                console.log(`PaymentIntent for ${paymentIntent.amount} under user ${paymentIntent.metadata?.userID} was successful!`);
-                await handlePaymentIntentSucceeded(paymentIntent, paymentIntent.metadata?.userID);
-                break;
-            }
-            case 'invoice.payment_succeeded': {
-                console.log('we are in invoice.payment_succeeded');
-                const invoice = event.data.object;
-                let userID = invoice.metadata && invoice.metadata.userID;
-
-                // If the invoice doesn't explicitly log the userID, pull it from the attached subscription
-                if (!userID && invoice.subscription) {
-                    const subscriptionInfo = await stripe.subscriptions.retrieve(invoice.subscription);
-                    userID = subscriptionInfo.metadata && subscriptionInfo.metadata.userID;
-                }
-
-                console.log(`Invoice payment of ${invoice.amount_paid} for user ${userID} was successful!`);
-                await handleInvoicePaymentSucceeded(invoice, userID);
-                break;
-            }
-            case 'payment_method.attached': {
-                const paymentMethod = event.data.object;
-                // Then define and call a method to handle the successful attachment of a PaymentMethod
-                // handlePaymentMethodAttached(paymentMethod);
-                break;
-            }
             case 'customer.subscription.created': {
                 console.log('we are in customer.subscription.created');
                 const subscription = event.data.object;
                 let userID = subscription.metadata && subscription.metadata.userID;
 
                 if (userID) {
-                    const db = admin.firestore();
-                    // Update Firebase with the latest subscription status
-                    await db.collection('users').doc(userID).set({
-                        subscription: {
-                            status: subscription.status,
-                            stripeSubscriptionId: subscription.id,
-                            currentPeriodEnd: subscription.items.data[0].current_period_end ? admin.firestore.Timestamp.fromMillis(subscription.items.data[0].current_period_end * 1000) : null
-                        }
-                    }, { merge: true });
+                    const { data, error } = await supabaseAdmin
+                        .from('profiles')
+                        .update({
+                            subscription: {
+                                status: subscription.status,
+                                subscription_id: subscription.id,
+                                current_period_end: new Date(subscription.items.data[0].current_period_end * 1000).toISOString(),
+                                cancel_at_period_end: false
+                            }
+                        })
+                        .eq('id', userID);
+                    if (error) console.error("Error updating subscription:", error);
 
                     console.log(`✅ Updated subscription status for user ${userID} to '${subscription.status}'`);
                 }
@@ -129,16 +75,21 @@ app.post('/webhook',
                 let userID = subscription.metadata && subscription.metadata.userID;
 
                 if (userID) {
-                    const db = admin.firestore();
-                    await db.collection('users').doc(userID).set({
-                        subscription: {
-                            status: subscription.status,
-                            stripeSubscriptionId: subscription.id,
-                            currentPeriodEnd: subscription.items.data[0].current_period_end ? admin.firestore.Timestamp.fromMillis(subscription.items.data[0].current_period_end * 1000) : null
-                        }
-                    }, { merge: true });
-
+                    const { data, error } = await supabaseAdmin
+                        .from('profiles')
+                        .update({
+                            subscription: {
+                                status: subscription.status,
+                                subscription_id: subscription.id,
+                                current_period_end: new Date(subscription.items.data[0].current_period_end * 1000).toISOString(),
+                                cancel_at_period_end: subscription.cancel_at_period_end || false
+                            }
+                        })
+                        .eq('id', userID);
+                    if (error) console.error("Error updating subscription:", error);
                     console.log(`✅ Updated subscription status for user ${userID} to '${subscription.status}'`);
+                } else {
+                    console.error("⚠️ Failed to update subscription: No userID found in metadata!");
                 }
                 break;
             }
@@ -146,7 +97,6 @@ app.post('/webhook',
                 // Unexpected event type
                 console.log(`Unhandled event type ${event.type}.`);
         }
-
         // Return a 200 response to acknowledge receipt of the event
         res.sendStatus(200);
     }
@@ -189,9 +139,6 @@ app.post('/create-confirm-intent', async (req, res) => {
             currency: 'usd',
             automatic_payment_methods: { enabled: true },
             confirmation_token: req.body.confirmationTokenId,
-            metadata: {
-                userID: req.body.userID
-            },
             return_url: `${YOUR_DOMAIN}/complete`,
         });
         res.json({
@@ -207,28 +154,33 @@ app.post('/create-confirm-intent', async (req, res) => {
 
 app.post('/create-subscription', async (req, res) => {
     try {
-        const db = admin.firestore();
-        const userRef = db.collection('users').doc(req.body.userID);
-        const userDoc = await userRef.get();
+        const { data, error } = await supabaseAdmin
+            .from('profiles')
+            .select('subscription, stripe')
+            .eq('id', req.body.userID);
         let customerId;
 
         // Retrieve existing customer or create a new one
-        if (userDoc.exists && userDoc.data().stripeCustomerId) {
-            customerId = userDoc.data().stripeCustomerId;
+        if (data && data.length > 0) {
+            customerId = data[0].stripe.customer_id;
         } else {
             const customer = await stripe.customers.create({
                 metadata: { userID: req.body.userID }
             });
+
             customerId = customer.id;
-            // Save the newly created stripe customer ID to Firestore
-            await userRef.set({ stripeCustomerId: customerId }, { merge: true });
+            const { data, error } = await supabaseAdmin
+                .from('profiles')
+                .update({ stripe: { customer_id: customerId } })
+                .eq('id', req.body.userID);
+            if (error) console.error("Error updating subscription:", error);
         }
 
         // Create the subscription with incomplete payment behavior
         const subscription = await stripe.subscriptions.create({
             customer: customerId,
             items: [{
-                price: req.body.priceId, // e.g. 'price_xxxx' created in your Stripe Dashboard
+                price: req.body.priceId,
             }],
             payment_behavior: 'default_incomplete',
             payment_settings: { save_default_payment_method: 'on_subscription' },
@@ -253,21 +205,23 @@ app.post('/create-subscription', async (req, res) => {
 app.post('/update-address', async (req, res) => {
     try {
         const { userID, addressData } = req.body;
-
-        const db = admin.firestore();
-        const userRef = db.collection('users').doc(userID);
-
-        const userDoc = await userRef.get();
-        const stripeCustomerId = userDoc.data().stripeCustomerId;
-
-        // Update Firebase
-        await userRef.set({
-            billingName: addressData.name,
-            billingAddress: addressData.address,
-            updatedAt: new Date()
-        }, { merge: true });
-
-        res.json({ success: true, message: "Address saved to Firebase and Stripe." });
+        const { data, error } = await supabaseAdmin
+            .from('profiles')
+            .update({
+                stripe: {
+                    billingInfo: {
+                        name: addressData.name,
+                        address: addressData.address,
+                        updatedAt: new Date()
+                    },
+                }
+            })
+            .eq('id', userID);
+        if (error) {
+            console.log('Error updating address: ', error);
+            res.status(400).json({ error: error.message });
+        }
+        res.json({ success: true, message: "Address saved to Supabase." });
     } catch (err) {
         console.error(err);
         res.sendStatus(500).json({ error: err.message });
