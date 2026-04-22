@@ -202,6 +202,45 @@ app.post('/create-subscription', async (req, res) => {
     }
 });
 
+app.post('/resubscribe', async (req, res) => {
+    try {
+        const { subscriptionId } = req.body;
+        if (!subscriptionId) {
+            return res.status(400).json({ error: "No subscription ID provided." });
+        }
+
+        const subscription = await stripe.subscriptions.update(
+            subscriptionId,
+            { cancel_at_period_end: false }
+        );
+
+        res.json({ success: true, subscription });
+    } catch (err) {
+        console.error("Resubscription Error:", err.message);
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.post('/cancel-subscription', async (req, res) => {
+    try {
+        const { subscriptionId } = req.body;
+        if (!subscriptionId) {
+            return res.status(400).json({ error: "No subscription ID provided." });
+        }
+
+        // Tells Stripe to cancel the subscription at the end of the current billing cycle
+        const canceledSubscription = await stripe.subscriptions.update(
+            subscriptionId,
+            { cancel_at_period_end: true }
+        );
+
+        res.json({ success: true, subscription: canceledSubscription });
+    } catch (err) {
+        console.error("Cancellation Error:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.post('/update-address', async (req, res) => {
     try {
         const { userID, addressData } = req.body;
