@@ -14,10 +14,12 @@ import {
     MenuTrigger,
 } from 'react-native-popup-menu';
 import { MenuItem } from './CustomMenuItems.js';
+import { useRouter } from 'expo-router';
 
 const ios = Platform.OS == 'ios';
 export default function HomeHeader() {
     const { user, logout } = useAuth();
+    const router = useRouter();
 
     const { top } = useSafeAreaInsets();
     const handleProfile = () => {
@@ -25,21 +27,8 @@ export default function HomeHeader() {
     }
 
     const handleLogout = async () => {
-        //await logout();
-        console.log('Starting logout...');
-        try {
-            const result = await logout();
-            console.log('Logout result:', result);
-            if (result.success) {
-                Alert.alert('Logged out', 'You have been logged out successfully.');
-                // Optionally, navigate manually if auto-navigation fails
-            } else {
-                Alert.alert('Logout Failed', result.msg);
-            }
-        } catch (error) {
-            console.error('Logout error:', error);
-            Alert.alert('Error', 'An error occurred during logout.');
-        }
+        await logout();
+        router.push('/signIn');
     }
     return (
         <View style={{ paddingTop: ios ? top : top + 10, backgroundColor: '#4592a1' }} className="flex-row justify-between px-5 pb-6 shadow">

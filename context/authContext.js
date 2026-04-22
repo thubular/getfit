@@ -17,10 +17,10 @@ export const AuthContextProvider = ({ children }) => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log(event, session)
             if (session?.user) {
-                setIsAuthenticated(true);
                 setUser(session.user);
-                setLoading(false);
                 await updateUserData(session.user.id);
+                setIsAuthenticated(true);
+                setLoading(false);
             } else {
                 setIsAuthenticated(false);
                 setUser(null);
