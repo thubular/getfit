@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { View, Text, FlatList, TextInput, Button, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TextInput, Button, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { defaultPicture } from '../../utils/common';
 import { supabase } from '../../lib/supabase';
@@ -22,40 +23,58 @@ export default function ChatRoom({ roomId, userId }) {
             }, async (payload) => {
                 const newMessage = payload.new;
 
-                // Realtime payloads don't include SQL JOINs automatically.
-                // We need to fetch the profile info for the user who just sent this!
-                const { data: profileData } = await supabase
-                    .from('public_profiles')
-                    .select('username, profileUrl')
-                    .eq('id', newMessage.user_id)
-                    .single();
+                try {
+                    // Realtime payloads don't include SQL JOINs automatically.
+                    // We need to fetch the profile info for the user who just sent this!
+                    const { data: profileData } = await supabase
+                        .from('public_profiles')
+                        .select('username, profileUrl')
+                        .eq('id', newMessage.user_id)
+                        .single();
 
-                if (profileData) {
-                    newMessage.public_profiles = profileData;
+                    if (profileData) {
+                        newMessage.public_profiles = profileData;
+                    }
+                } catch (err) {
+                    console.error("Error fetching profile for realtime message:", err);
                 }
 
                 // add the new message to the array instantly
                 setMessages((prevMessages) => [newMessage, ...prevMessages]);
             })
             .subscribe();
+
         // clean up the websocket when the user leaves the screen
         return () => {
             supabase.removeChannel(subscription);
         };
-    }, []);
-    const fetchMessages = async () => {
-        setIsFetching(true);
-        const { data, error } = await supabase
-            .from('messages')
-            .select('*, public_profiles(username, profileUrl)')
-            .eq('room_id', roomId)
-            .order('created_at', { ascending: false }) // newest first
-            .limit(50);
+    }, [roomId]);
 
-        if (data) {
-            setMessages(data);
+    const fetchMessages = async () => {
+        try {
+            setIsFetching(true);
+            const { data, error } = await supabase
+                .from('messages')
+                .select('*, public_profiles(username, profileUrl)')
+                .eq('room_id', roomId)
+                .order('created_at', { ascending: false }) // newest first
+                .limit(50);
+
+            if (error) throw error;
+
+            if (data) {
+                setMessages(data);
+            }
+        } catch (error) {
+            console.error("Error fetching messages:", error);
+            if (Platform.OS === 'web') {
+                window.alert("Failed to load messages: " + error.message);
+            } else {
+                Alert.alert("Error", "Failed to load messages: " + error.message);
+            }
+        } finally {
+            setIsFetching(false);
         }
-        setIsFetching(false);
     };
     const sendMessage = async () => {
         if (!inputText.trim()) return;
@@ -120,14 +139,19 @@ export default function ChatRoom({ roomId, userId }) {
                     }}
                 />
             )}
-            <View style={{ flexDirection: 'row', marginTop: 10 }}>
+            <View className="flex-row items-center pt-3 pb-2 gap-3 mt-2 border-t border-gray-200">
                 <TextInput
-                    style={{ flex: 1, borderWidth: 1, padding: 10, borderRadius: 8, borderColor: '#ccc' }}
+                    className="flex-1 border border-gray-300 px-4 py-3 rounded-full bg-white text-base"
                     value={inputText}
                     onChangeText={setInputText}
                     placeholder="Type a message..."
                 />
-                <Button title="Send" onPress={sendMessage} />
+                <TouchableOpacity
+                    onPress={sendMessage}
+                    className="bg-[#4592a1] p-3 rounded-full justify-center items-center shadow-sm"
+                >
+                    <Feather name="send" size={20} color="white" />
+                </TouchableOpacity>
             </View>
         </View>
     );
