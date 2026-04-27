@@ -1,7 +1,6 @@
-import { View, Text, Alert } from 'react-native'
+import { View, Text, Alert, Platform } from 'react-native'
 import React from 'react'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { defaultPicture } from '../utils/common.js';
@@ -23,7 +22,7 @@ export default function HomeHeader() {
 
     const { top } = useSafeAreaInsets();
     const handleProfile = () => {
-
+        router.push('/profile');
     }
 
     const handleLogout = async () => {

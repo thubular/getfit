@@ -125,71 +125,80 @@ export default function Profile() {
     }
 
     return (
-        <View>
+        <View className="flex-1 bg-white px-5 pt-8 items-center">
             {loading && <Loading />}
-            <Image
-                source={{ uri: user?.profileUrl ? user.profileUrl : defaultPicture }}
-                style={{ height: hp(10), width: hp(10), borderRadius: 100, }} />
-            <View style={{ height: hp(7) }} className="flex-row gap-4 px-4 bg-neutral-100 items-center rounded-xl">
-                <Feather name="image" size={hp(2.7)} color="gray" />
+
+            {/* Profile Picture */}
+            <View className="mb-6 shadow-sm">
+                <Image
+                    source={user?.profileUrl ? { uri: user.profileUrl } : defaultPicture}
+                    style={{ height: hp(20), width: hp(20) }}
+                    className="rounded-full"
+                />
+            </View>
+
+            {/* Profile Input */}
+            <View className="flex-row px-4 bg-gray-50 items-center rounded-2xl w-full mb-6 h-14 border border-gray-200">
+                <Feather name="image" size={20} color="gray" />
                 <TextInput
                     ref={inputRef}
                     onChangeText={value => profileRef.current = value}
-                    style={{ fontSize: hp(2) }}
-                    className="flex-1 font-semibold text-neutral-700"
-                    placeholder='Profile url'
+                    className="flex-1 font-medium text-gray-700 ml-3 text-base"
+                    placeholder='Paste new profile image URL'
                     placeholderTextColor={'gray'}
+                    autoCapitalize="none"
                 />
             </View>
-            <View className="gap-4">
+
+            {/* Action Buttons */}
+            <View className="w-full gap-4">
                 <TouchableOpacity onPress={updateProfile}
-                    style={{ height: hp(6.5), width: hp(40), backgroundColor: 'darkcyan' }}
-                    className="rounded-xl justify-center items-center"
+                    className="bg-[#4592a1] rounded-2xl justify-center items-center h-14 shadow-sm"
                 >
-                    <Text style={{ fontSize: hp(2.7) }} className="text-white font-bold tracking-wider">
-                        Update profile picture
+                    <Text className="text-white font-bold text-lg tracking-wide">
+                        Update Profile Picture
                     </Text>
                 </TouchableOpacity>
+
                 {/* Show 'Subscribe Now' when inactive */}
                 {user?.userType === 'user' && (user?.subscription.status === 'inactive' || user?.subscription.status === 'canceled') && (
-                    <View>
-                        <TouchableOpacity onPress={handleSubscribe}
-                            style={{ height: hp(6.5), width: hp(40), backgroundColor: 'darkcyan' }}
-                            className="rounded-xl justify-center items-center"
-                        >
-                            <Text style={{ fontSize: hp(2.7) }} className="text-white font-bold tracking-wider">
-                                Subscribe Now
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity onPress={handleSubscribe}
+                        className="bg-[#4592a1] rounded-2xl justify-center items-center h-14 shadow-sm mt-2"
+                    >
+                        <Text className="text-white font-bold text-lg tracking-wide">
+                            Subscribe Now
+                        </Text>
+                    </TouchableOpacity>
                 )}
 
                 {/* Show Active Status & Cancel logic */}
                 {user?.userType === 'user' && user?.subscription.status === 'active' && (
-                    <View className="gap-2">
+                    <View className="bg-gray-50 p-5 rounded-2xl border border-gray-200 mt-2 gap-4 shadow-sm">
                         {user?.subscription.cancel_at_period_end ? (
                             <>
-                                <Text className="text-center font-medium text-neutral-500 mb-2">
-                                    Your subscription has been canceled. You have full access until: {user?.subscription.current_period_end.substring(0, 10)}
+                                <Text className="text-center font-medium text-gray-600 leading-6">
+                                    Your subscription is canceled.{'\n'}
+                                    You have full access until:{'\n'}
+                                    <Text className="font-bold text-gray-800 text-lg">{user?.subscription.current_period_end.substring(0, 10)}</Text>
                                 </Text>
                                 <TouchableOpacity onPress={handleResubscribe}
-                                    style={{ height: hp(6.5), width: hp(40), backgroundColor: 'darkcyan' }}
-                                    className="rounded-xl justify-center items-center"
+                                    className="bg-[#4592a1] rounded-2xl justify-center items-center h-14 mt-2"
                                 >
-                                    <Text style={{ fontSize: hp(2.7) }} className="text-white font-bold tracking-wider">
+                                    <Text className="text-white font-bold text-lg tracking-wide">
                                         Resubscribe
                                     </Text>
                                 </TouchableOpacity>
                             </>
                         ) : (
                             <>
-                                <Text className="text-center font-medium text-neutral-700">Next billing date: {user?.subscription.current_period_end.substring(0, 10)}</Text>
+                                <Text className="text-center font-medium text-gray-600 text-base">
+                                    Next billing date: <Text className="font-bold text-gray-800">{user?.subscription.current_period_end.substring(0, 10)}</Text>
+                                </Text>
                                 <TouchableOpacity onPress={cancelSubscription}
-                                    style={{ height: hp(6.5), width: hp(40), backgroundColor: '#ef4444' }} // red-500 for cancel button
-                                    className="rounded-xl justify-center items-center"
+                                    className="bg-red-500 rounded-2xl justify-center items-center h-14 mt-2"
                                 >
-                                    <Text style={{ fontSize: hp(2.7) }} className="text-white font-bold tracking-wider">
-                                        Cancel subscription
+                                    <Text className="text-white font-bold text-lg tracking-wide">
+                                        Cancel Subscription
                                     </Text>
                                 </TouchableOpacity>
                             </>
