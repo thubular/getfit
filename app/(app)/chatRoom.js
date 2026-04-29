@@ -52,6 +52,7 @@ export default function ChatRoom({ roomId, userId }) {
 
     const fetchMessages = async () => {
         try {
+            console.log('Loading chat messages from Supabase...');
             setIsFetching(true);
             const { data, error } = await supabase
                 .from('messages')
@@ -64,6 +65,7 @@ export default function ChatRoom({ roomId, userId }) {
 
             if (data) {
                 setMessages(data);
+                console.log('Successfully loaded chat messages.');
             }
         } catch (error) {
             console.error("Error fetching messages:", error);

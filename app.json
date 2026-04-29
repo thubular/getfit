@@ -35,11 +35,12 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ], 
+      ],
       [
         "expo-calendar",
         {
-          "calendarPermissions": "The app needs access to your calendar to schedule workouts."
+          "calendarPermissions": "The app needs access to your calendar to schedule workouts.",
+          "remindersPermission": "The app needs access to your reminders."
         }
       ]
     ],
