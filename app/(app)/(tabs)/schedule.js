@@ -151,8 +151,6 @@ export default function Schedule() {
       if (status === 'granted' && remindersStatus === 'granted') {
         const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
 
-        // Find a suitable calendar. On iOS, we look for isPrimary or 'Default'.
-        // On Android, we look for calendars associated with the user's account.
         const defaultCalendar = calendars.find(cal => cal.isPrimary) ||
           calendars.find(cal => cal.source && cal.source.name === 'Default') ||
           calendars[0];
@@ -286,7 +284,7 @@ export default function Schedule() {
   }
 
   return (
-    <View>
+    <View className="h-full p-5">
       <RNCalendar
         onDayPress={(day) => {
           const selected = new Date(day.dateString); // safely parse the string directly
@@ -425,7 +423,13 @@ export default function Schedule() {
             </View>
           ) : ( /* View events for non-admin users */
             <View className="w-full bg-white p-6 rounded-2xl shadow-lg">
-              <Text className="text-xl font-bold mb-4 text-center">Events for {selectedDate.toDateString()}</Text>
+              <Text className="text-xl font-bold mb-4 text-center">
+                Events for {(() => {
+                  const d = new Date(selectedDate);
+                  d.setDate(d.getDate() + 1);
+                  return d.toDateString();
+                })()}
+              </Text>
               {eventsForSelectedDate.length === 0 ? (
                 <Text className="text-gray-500 text-center mb-4">No events for this date.</Text>
               ) : (

@@ -129,7 +129,7 @@ export default function Profile() {
             {loading && <Loading />}
 
             {/* Profile Picture */}
-            <View className="mb-6 shadow-sm">
+            <View className="p-6">
                 <Image
                     source={user?.profileUrl ? { uri: user.profileUrl } : defaultPicture}
                     style={{ height: hp(20), width: hp(20) }}
@@ -173,7 +173,7 @@ export default function Profile() {
 
                 {/* Show Active Status & Cancel logic */}
                 {user?.userType === 'user' && user?.subscription.status === 'active' && (
-                    <View className="bg-gray-50 p-5 rounded-2xl border border-gray-200 mt-2 gap-4 shadow-sm">
+                    <View>
                         {user?.subscription.cancel_at_period_end ? (
                             <>
                                 <Text className="text-center font-medium text-gray-600 leading-6">
@@ -182,7 +182,7 @@ export default function Profile() {
                                     <Text className="font-bold text-gray-800 text-lg">{user?.subscription.current_period_end.substring(0, 10)}</Text>
                                 </Text>
                                 <TouchableOpacity onPress={handleResubscribe}
-                                    className="bg-[#4592a1] rounded-2xl justify-center items-center h-14 mt-2"
+                                    className="bg-[#4592a1] rounded-2xl justify-center items-center h-14 shadow-sm mt-2"
                                 >
                                     <Text className="text-white font-bold text-lg tracking-wide">
                                         Resubscribe
