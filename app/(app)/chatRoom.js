@@ -24,8 +24,6 @@ export default function ChatRoom({ roomId, userId }) {
                 const newMessage = payload.new;
 
                 try {
-                    // Realtime payloads don't include SQL JOINs automatically.
-                    // We need to fetch the profile info for the user who just sent this!
                     const { data: profileData } = await supabase
                         .from('public_profiles')
                         .select('username, profileUrl')

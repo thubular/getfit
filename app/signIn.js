@@ -31,7 +31,6 @@ export default function signIn() {
         setLoading(false);
     }
     return (
-        //<View className="flex-1">
         <CustomKeyboardView>
             <StatusBar style="dark" />
             <View style={{
@@ -75,8 +74,6 @@ export default function signIn() {
                     {
                         loading ? (
                             <View className="flex-row justify-center">
-                                {/* TODO: FIX LOADING ANIMATION */}
-                                {/*<Loading size={hp(6.5)}/>*/}
                                 <Loading />
                             </View>
                         ) : (
@@ -98,7 +95,6 @@ export default function signIn() {
                 </View>
 
             </View>
-            {/*</View>*/}
         </CustomKeyboardView>
     )
 }

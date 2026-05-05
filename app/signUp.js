@@ -33,7 +33,6 @@ export default function signUp() {
         setLoading(false);
     }
     return (
-        //<View className="flex-1">
         <CustomKeyboardView>
             <StatusBar style="dark" />
             <View style={{
@@ -104,7 +103,6 @@ export default function signUp() {
                 </View>
 
             </View>
-            {/*</View>*/}
         </CustomKeyboardView>
     )
 }
